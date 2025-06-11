@@ -8,9 +8,17 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [jwtToken, setJwtToken] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showCredentialDivs, setShowCredentialDivs] = useState(false);
+  const [showSignup, setShowSignup] = useState(false);
+  const [showAppCreds, setShowAppCreds] = useState(false);
 
-  // App credentials state
+  // Signup state
+  const [signupUsername, setSignupUsername] = useState("");
+  const [signupPassword, setSignupPassword] = useState("");
+  const [signupConfirm, setSignupConfirm] = useState("");
+  const [signupLoading, setSignupLoading] = useState(false);
+  const [signupSuccess, setSignupSuccess] = useState(false);
+
+  // App credentials state (for signup)
   const [facebookAppId, setFacebookAppId] = useState("");
   const [facebookAppSecret, setFacebookAppSecret] = useState("");
   const [instagramAppId, setInstagramAppId] = useState("");
@@ -21,14 +29,7 @@ export default function Login() {
   const dispatch = useDispatch();
   const selector = useSelector((state) => state.pages.user);
 
-  // Check if credentials have already been entered
-  useEffect(() => {
-    const credsEntered = localStorage.getItem("appCredsEntered");
-    if (isLoggedIn && credsEntered === "true") {
-      window.location.href = "http://localhost:5173/Home";
-    }
-  }, [isLoggedIn]);
-
+  // Login handler
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
@@ -41,21 +42,42 @@ export default function Login() {
         setIsLoggedIn(true);
         dispatch(setUser(res.data.user));
         localStorage.setItem("user", JSON.stringify(res.data.user));
-        // Check if credentials already entered
-        const credsEntered = localStorage.getItem("appCredsEntered");
-        if (credsEntered === "true") {
-          window.location.href = "http://localhost:5173/Home";
-        } else {
-          setShowCredentialDivs(true);
-        }
+        window.location.href = "http://localhost:5173/Home";
       }
     } catch (err) {
       alert("Invalid login");
     }
   };
 
-  // Handler for submitting app credentials
-  const handleSubmitCredentials = async (e) => {
+  // Signup handler (show app creds after signup)
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    if (signupPassword !== signupConfirm) {
+      alert("Passwords do not match");
+      return;
+    }
+    setSignupLoading(true);
+    try {
+      const res = await axios.post("http://localhost:5000/userauth/register", {
+        username: signupUsername,
+        password: signupPassword,
+      });
+      setSignupSuccess(true);
+      setSignupLoading(false);
+      setTimeout(() => {
+        setShowAppCreds(true);
+        setSignupSuccess(false);
+      }, 1000);
+      // Store user for app creds submission
+      localStorage.setItem("user", JSON.stringify(res.data.user || { username: signupUsername }));
+    } catch (err) {
+      alert("Username already exists");
+      setSignupLoading(false);
+    }
+  };
+
+  // Handler for submitting app credentials after signup
+  const handleSubmitAppCreds = async (e) => {
     e.preventDefault();
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user || !user._id) {
@@ -72,7 +94,6 @@ export default function Login() {
         youtubeAppId,
         youtubeAppSecret,
       });
-      // Set flag so credentials form doesn't show again
       localStorage.setItem("appCredsEntered", "true");
       window.location.href = "http://localhost:5173/Home";
     } catch (err) {
@@ -91,8 +112,8 @@ export default function Login() {
     color: "#fff"
   };
 
-  // Show credential divs after login, only if not already entered
-  if (isLoggedIn && showCredentialDivs) {
+  // Show app credentials form after signup
+  if (showAppCreds) {
     return (
       <div style={{
         minHeight: "100vh",
@@ -104,7 +125,7 @@ export default function Login() {
         fontFamily: "sans-serif"
       }}>
         <form
-          onSubmit={handleSubmitCredentials}
+          onSubmit={handleSubmitAppCreds}
           style={{
             display: "flex",
             gap: "28px",
@@ -230,6 +251,107 @@ export default function Login() {
     );
   }
 
+  // Signup page
+  if (showSignup) {
+    return (
+      <div style={{
+        height: "100vh",
+        width: "100vw",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#000"
+      }}>
+        <form onSubmit={handleSignup} style={{
+          background: "#ffffffcc",
+          padding: "40px",
+          borderRadius: "20px",
+          boxShadow: "0px 8px 24px rgba(0, 0, 0, 0.2)",
+          width: "100%",
+          maxWidth: "400px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center"
+        }}>
+          <div style={{
+            width: "80px",
+            height: "80px",
+            backgroundColor: "#e0e0e0",
+            borderRadius: "50%",
+            marginBottom: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "40px",
+            color: "#7d2ae8"
+          }}>📝</div>
+          <h2 style={{ marginBottom: "18px", color: "#7d2ae8" }}>Sign Up</h2>
+          <input
+            type="text"
+            placeholder="Username"
+            value={signupUsername}
+            onChange={e => setSignupUsername(e.target.value)}
+            required
+            style={inputBoxStyle}
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={signupPassword}
+            onChange={e => setSignupPassword(e.target.value)}
+            required
+            style={inputBoxStyle}
+          />
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={signupConfirm}
+            onChange={e => setSignupConfirm(e.target.value)}
+            required
+            style={inputBoxStyle}
+          />
+          <button
+            type="submit"
+            disabled={signupLoading}
+            style={{
+              width: "100%",
+              padding: "12px",
+              marginTop: "15px",
+              backgroundColor: "#7d2ae8",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontWeight: "bold",
+              cursor: "pointer"
+            }}
+          >
+            {signupLoading ? "Signing Up..." : "Sign Up"}
+          </button>
+          {signupSuccess && (
+            <div style={{ color: "green", marginTop: "18px" }}>
+              Signup successful! <span style={{ color: "#7d2ae8", textDecoration: "underline", cursor: "pointer" }} onClick={() => setShowAppCreds(true)}>Enter App Credentials</span>
+            </div>
+          )}
+          <div style={{ marginTop: "20px", fontSize: "14px" }}>
+            Already have an account?
+            <span
+              onClick={() => setShowSignup(false)}
+              style={{
+                padding: "5px 12px",
+                border: "1px solid #7d2ae8",
+                borderRadius: "12px",
+                textDecoration: "none",
+                color: "#7d2ae8",
+                marginLeft: "5px",
+                cursor: "pointer"
+              }}>Sign In</span>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  // Login page
   return (
     <div style={{
       height: "100vh",
@@ -309,15 +431,17 @@ export default function Login() {
 
         <div style={{ marginTop: "20px", fontSize: "14px" }}>
           Not a member?
-          <a href="#"
+          <span
+            onClick={() => setShowSignup(true)}
             style={{
               padding: "5px 12px",
               border: "1px solid #7d2ae8",
               borderRadius: "12px",
               textDecoration: "none",
               color: "#7d2ae8",
-              marginLeft: "5px"
-            }}>Create account</a>
+              marginLeft: "5px",
+              cursor: "pointer"
+            }}>Create account</span>
         </div>
       </form>
     </div>
