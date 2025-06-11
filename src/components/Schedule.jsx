@@ -1,39 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useDispatch, useSelector } from 'react-redux';
+import { setPages, setUser } from '../store/pagesSlice';
+import LogoutButton from './LogoutButton';
+import PageSelector from './PageSelector';
 
 const SchPost = () => {
-  const [accessToken, setAccessToken] = useState('');
-  const [pages, setPages] = useState([]);
+  const dispatch = useDispatch();
+  const pages = useSelector((state) => state.pages.pages);
+  const user = useSelector((state) => state.pages.user);
+
   const [selectedPage, setSelectedPage] = useState('');
   const [message, setMessage] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
   const [mediaFile, setMediaFile] = useState(null);
   const [mediaType, setMediaType] = useState('photo');
 
-  const handleFacebookLogin = () => {
-    const appId = '24700456586221475';
-    const redirectUri = 'http://localhost:5173/schedulePost';
-    const scopes = 'pages_show_list,pages_read_engagement,pages_manage_posts';
-
-    window.location.href =
-      `https://www.facebook.com/v18.0/dialog/oauth?client_id=${appId}&redirect_uri=${redirectUri}&scope=${scopes}&response_type=token`;
-  };
-
-  const fetchPages = async (userAccessToken) => {
-    const res = await axios.get(`https://graph.facebook.com/me/accounts?access_token=${userAccessToken}`);
-    setPages(res.data.data);
-  };
-
+  // Restore user from localStorage on mount
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash) {
-      const token = new URLSearchParams(hash.substring(1)).get('access_token');
-      if (token) {
-        setAccessToken(token);
-        fetchPages(token);
-      }
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      dispatch(setUser(JSON.parse(storedUser)));
     }
-  }, []);
+    fetchPages();
+  }, [dispatch]);
+
+  // Redirect to Facebook login with user_id as query param
+  const handleFacebookLogin = () => {
+    if (!user || !user._id) {
+      alert('Please login first.');
+      return;
+    }
+    window.location.href = `http://localhost:5000/auth/facebook?user_id=${user._id}`;
+  };
+
+  // Fetch pages after Facebook login
+  const fetchPages = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/auth/facebook/pages', {
+        withCredentials: true,
+      });
+      dispatch(setPages(res.data.pages));
+    } catch (err) {
+      console.error('Error fetching pages:', err);
+    }
+  };
 
   const handleSchedulePost = async () => {
     if (!mediaFile) return alert('Please select a media file.');
@@ -41,18 +52,17 @@ const SchPost = () => {
     if (!scheduledTime) return alert('Select a scheduled time.');
 
     const timestamp = Math.floor(new Date(scheduledTime).getTime() / 1000);
-
     const formData = new FormData();
     formData.append('pageId', selectedPage);
-    formData.append('pageAccessToken', pages.find(p => p.id === selectedPage)?.access_token);
     formData.append('message', message);
     formData.append('scheduledTime', timestamp);
     formData.append('mediaType', mediaType);
-    formData.append('media', mediaFile);
+    formData.append('file', mediaFile);
 
     try {
       const res = await axios.post('http://localhost:5000/schedulePost/timing', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
       });
       alert('Scheduled Post ID: ' + res.data.postId);
     } catch (err) {
@@ -66,7 +76,6 @@ const SchPost = () => {
 
     const formData = new FormData();
     formData.append('pageId', selectedPage);
-    formData.append('pageAccessToken', pages.find(p => p.id === selectedPage)?.access_token);
     formData.append('message', message);
     formData.append('mediaType', mediaType);
     formData.append('file', mediaFile);
@@ -74,6 +83,7 @@ const SchPost = () => {
     try {
       const res = await axios.post('http://localhost:5000/schedulePost/instantly', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true,
       });
       alert('Post ID: ' + res.data.postId);
     } catch (err) {
@@ -82,64 +92,33 @@ const SchPost = () => {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f3f6f9',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      padding: '20px'
-    }}>
-      {!accessToken ? (
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fafc] via-[#e0e7ef] to-[#c7d2fe] flex items-center justify-center px-4">
+      {pages.length === 0 ? (
         <button
           onClick={handleFacebookLogin}
-          style={{
-            padding: '12px 24px',
-            backgroundColor: '#1877F2',
-            color: 'white',
-            borderRadius: '8px',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            border: 'none',
-            cursor: 'pointer'
-          }}
+          className="px-8 py-4 bg-gradient-to-r from-blue-700 to-purple-600 text-white rounded-xl font-bold text-lg shadow-lg hover:from-blue-800 hover:to-purple-700 transition"
         >
           Login with Facebook
         </button>
       ) : (
-        <div style={{
-          backgroundColor: 'white',
-          padding: '30px',
-          borderRadius: '12px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          maxWidth: '600px',
-          width: '100%'
-        }}>
-          {/* Title Section */}
-          <div style={{ marginBottom: '24px', borderBottom: '1px solid #ddd', paddingBottom: '12px' }}>
-            <h2 style={{
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#333',
-              textAlign: 'center'
-            }}>
+        <div className="bg-white shadow-2xl rounded-3xl w-full max-w-xl flex flex-col overflow-hidden">
+          {/* Headline Section */}
+          <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 text-center">
+            <h2 className="text-xl font-extrabold text-white tracking-wide mb-1">
               Schedule a Facebook Post
             </h2>
+            <p className="text-purple-100 text-sm">
+              Plan your content and reach your audience at the perfect time!
+            </p>
           </div>
 
           {/* Form Section */}
-          <div>
-            <label style={{ fontWeight: '600', color: '#555' }}>Select Page</label>
+          <div className="p-4 flex flex-col gap-3 bg-[#f6f8fa]">
+            <label className="block mb-1 text-sm font-semibold text-gray-700">Select Page</label>
             <select
-              value={selectedPage}
               onChange={e => setSelectedPage(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                marginBottom: '16px',
-                borderRadius: '6px',
-                border: '1px solid #ccc'
-              }}
+              value={selectedPage}
+              className="w-full mb-2 border border-purple-300 rounded-lg p-2 bg-gradient-to-r from-blue-700 to-purple-600 text-white font-semibold focus:ring-2 focus:ring-purple-400"
             >
               <option value="">-- Choose a Page --</option>
               {pages.map(page => (
@@ -147,90 +126,72 @@ const SchPost = () => {
               ))}
             </select>
 
-            <label style={{ fontWeight: '600', color: '#555' }}>Message / Caption</label>
+            <label className="block mb-1 text-sm font-semibold text-gray-700">Message / Caption</label>
             <textarea
               value={message}
               onChange={e => setMessage(e.target.value)}
-              placeholder="Write your message..."
-              style={{
-                width: '100%',
-                height: '80px',
-                padding: '8px',
-                marginBottom: '16px',
-                borderRadius: '6px',
-                border: '1px solid #ccc'
-              }}
+              className="w-full mb-2 border border-purple-300 rounded-lg p-2 h-14 bg-white text-gray-800 focus:ring-2 focus:ring-purple-400"
+              placeholder="Write your post message or caption..."
             />
 
-            <label style={{ fontWeight: '600', color: '#555' }}>Media Type</label>
+            <label className="block mb-1 text-sm font-semibold text-gray-700">Media Type</label>
             <select
               value={mediaType}
               onChange={e => setMediaType(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                marginBottom: '16px',
-                borderRadius: '6px',
-                border: '1px solid #ccc'
-              }}
+              className="w-full mb-2 border border-purple-300 rounded-lg p-2 bg-white text-gray-800 focus:ring-2 focus:ring-purple-400"
             >
               <option value="photo">Photo</option>
               <option value="video">Video</option>
             </select>
 
-            <label style={{ fontWeight: '600', color: '#555' }}>Upload Media</label>
+            <label className="block mb-1 text-sm font-semibold text-gray-700">Upload Media</label>
             <input
               type="file"
               accept={mediaType === 'photo' ? 'image/*' : 'video/*'}
               onChange={e => setMediaFile(e.target.files[0])}
-              style={{ marginBottom: '16px' }}
+              className="w-full mb-2 border border-purple-300 rounded-lg p-2 bg-white text-gray-800 focus:ring-2 focus:ring-purple-400"
             />
 
-            <label style={{ fontWeight: '600', color: '#555' }}>Schedule Time</label>
+            <label className="block mb-1 text-sm font-semibold text-gray-700">Schedule Time</label>
             <input
               type="datetime-local"
               value={scheduledTime}
               onChange={e => setScheduledTime(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '8px',
-                marginBottom: '20px',
-                borderRadius: '6px',
-                border: '1px solid #ccc'
-              }}
+              className="w-full mb-4 border border-purple-300 rounded-lg p-2 bg-white text-gray-800 focus:ring-2 focus:ring-purple-400"
             />
 
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <button
                 onClick={handleSchedulePost}
-                style={{
-                  flex: 1,
-                  backgroundColor: '#10B981',
-                  color: 'white',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
+                className="flex-1 bg-gradient-to-r from-green-500 to-green-700 text-white px-4 py-2 rounded-lg font-semibold shadow hover:from-green-600 hover:to-green-800 transition"
               >
                 Schedule Later
               </button>
               <button
                 onClick={handlePostNow}
-                style={{
-                  flex: 1,
-                  backgroundColor: '#6366F1',
-                  color: 'white',
-                  padding: '10px',
-                  borderRadius: '8px',
-                  fontWeight: '600',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
+                className="flex-1 bg-gradient-to-r from-pink-500 to-pink-700 text-white px-4 py-2 rounded-lg font-semibold shadow hover:from-pink-600 hover:to-pink-800 transition"
               >
                 Post Now
               </button>
+            </div>
+            <div className="flex flex-row gap-4 mt-4 justify-between">
+              <button
+                className="px-4 py-2 bg-gradient-to-r from-blue-700 to-purple-600 text-white rounded-lg font-semibold shadow hover:from-blue-800 hover:to-purple-700 transition"
+                onClick={() => {
+                  // If you want to add logout logic here, you can do so
+                  // Or just render <LogoutButton /> if you want to keep the same logic
+                  // For now, we keep the LogoutButton component
+                }}
+              >
+                <LogoutButton />
+              </button>
+              <div className="flex-1 flex justify-end">
+                <button
+                  className="px-4 py-2 bg-gradient-to-r from-blue-700 to-purple-600 text-white rounded-lg font-semibold shadow hover:from-blue-800 hover:to-purple-700 transition"
+                >
+                  <PageSelector />
+                </button>
+              </div>
             </div>
           </div>
         </div>

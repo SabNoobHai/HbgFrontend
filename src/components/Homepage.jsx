@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPages, setSelectedPage } from '../store/pagesSlice';
-import SchPost from './Schedule'; // Importing Schedule component
-import Posts from './Posts'; // Importing Posts component
+import SchPost from './Schedule';
+import Posts from './Posts';
+import Analytics from './Analytics';
 
 function Homepage() {
   const [posts, setPosts] = useState([]);
   const [sortBy, setSortBy] = useState('date');
   const [order, setOrder] = useState('desc');
-  const [activeSection, setActiveSection] = useState('home'); // for dynamic switching
+  const [activeSection, setActiveSection] = useState('home');
 
   const dispatch = useDispatch();
   const pages = useSelector((state) => state.pages.pages);
@@ -48,7 +49,6 @@ function Homepage() {
       alert('Failed to fetch posts');
     }
   };
-  // hello bhvhf
 
   useEffect(() => {
     fetchPages();
@@ -133,10 +133,11 @@ function Homepage() {
                       onClick={() => {
                         if (link === 'Scheduling Post') {
                           setActiveSection('schedule');
-                        } else if (link === 'Posts') { // Handle click for "Posts" to show Posts.jsx
-                          setActiveSection('all-posts'); 
-                        }
-                         else {
+                        } else if (link === 'Posts') {
+                          setActiveSection('all-posts');
+                        } else if (link === 'Analytics') {
+                          setActiveSection('Analytics');
+                        } else {
                           setActiveSection('home');
                         }
                       }}
@@ -155,8 +156,10 @@ function Homepage() {
         <main className="flex-1 p-10 ml-20 flex flex-col gap-10">
           {activeSection === 'schedule' ? (
             <SchPost />
-          ) : activeSection === 'all-posts' ? ( // Render Posts component here
+          ) : activeSection === 'all-posts' ? (
             <Posts />
+          ) : activeSection === 'Analytics' ? (
+            <Analytics />
           ) : (
             <>
               <div
@@ -165,7 +168,6 @@ function Homepage() {
               >
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
                   <h2 className="text-2xl font-semibold text-white">FACEBOOK POSTS</h2>
-
                   <div className="flex flex-wrap gap-4 items-center">
                     <select
                       className="p-2 rounded-md bg-[#2b2b2b] text-white"
@@ -179,7 +181,6 @@ function Homepage() {
                         </option>
                       ))}
                     </select>
-
                     <select
                       className="p-2 rounded-md bg-[#2b2b2b] text-white"
                       value={sortBy}
@@ -189,7 +190,6 @@ function Homepage() {
                       <option value="likes">Sort by Likes</option>
                       <option value="comments">Sort by Comments</option>
                     </select>
-
                     <select
                       className="p-2 rounded-md bg-[#2b2b2b] text-white"
                       value={order}
@@ -200,7 +200,6 @@ function Homepage() {
                     </select>
                   </div>
                 </div>
-
                 <div className="overflow-hidden w-full">
                   <div className="animate-marquee flex gap-6">
                     {posts.map((post) => (
@@ -217,11 +216,9 @@ function Homepage() {
                             </div>
                           </div>
                         </div>
-
                         <div className="px-4 py-2 text-sm">
                           {post.message ? post.message.slice(0, 100) + '...' : 'No content'}
                         </div>
-
                         {post.full_picture && (
                           <img
                             src={post.full_picture}
@@ -229,14 +226,12 @@ function Homepage() {
                             className="w-full object-cover h-48"
                           />
                         )}
-
                         <div className="flex justify-between items-center px-4 py-2 text-sm text-gray-500 border-t border-b border-gray-300">
                           <div>
                             <span role="img" aria-label="like">👍</span> {post.likes?.summary?.total_count || 0}
                           </div>
                           <div>{post.comments?.summary?.total_count || 0} Comments</div>
                         </div>
-
                         <div className="flex justify-around py-2">
                           <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600">
                             👍 Like
@@ -251,7 +246,7 @@ function Homepage() {
                 </div>
               </div>
 
-              {/* Your Instagram section if activeSection is 'home' or default */}
+              {/* Instagram Section */}
               <div
                 id="homepage"
                 className="h-[350px] bg-[#1f1f1f]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300"
