@@ -5,15 +5,8 @@ const LogoutButton = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    try {
-      await axios.get('http://localhost:5000/auth/logout', {
-        withCredentials: true,
-      });
-      localStorage.clear(); // or remove any state you stored
-      navigate('/'); // redirect to homepage or login
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
+    //remove user data from localStorage
+    localStorage.removeItem('user');
   };
 
   return (

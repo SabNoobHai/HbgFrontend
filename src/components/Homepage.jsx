@@ -5,6 +5,7 @@ import { setPages, setSelectedPage } from '../store/pagesSlice';
 import SchPost from './Schedule';
 import Posts from './Posts';
 import Analytics from './Analytics';
+import LogoutButton from './LogoutButton';
 
 function Homepage() {
   const [posts, setPosts] = useState([]);
@@ -116,6 +117,8 @@ function Homepage() {
               { title: 'Analytics', href: 'analytics', links: ['Likes', 'Followers', 'Comments'] },
               { title: 'Earning', href: 'earning', links: ['Views Per Video', 'Likes Per Post'] },
               { title: 'Trending', href: 'trending', links: ['Trending Reels', 'Trending Post'] },
+              { title: 'Logout', href: 'logout', links: ['Logout'] },
+
             ].map(section => (
               <div key={section.title}>
                 <a
@@ -160,6 +163,8 @@ function Homepage() {
             <Posts />
           ) : activeSection === 'Analytics' ? (
             <Analytics />
+          ) : activeSection === 'Logout' ?(
+            <LogoutButton/>
           ) : (
             <>
               <div
@@ -261,6 +266,7 @@ function Homepage() {
             </>
           )}
         </main>
+        <LogoutButton />
       </div>
     </>
   );

@@ -175,16 +175,6 @@ const SchPost = () => {
               </button>
             </div>
             <div className="flex flex-row gap-4 mt-4 justify-between">
-              <button
-                className="px-4 py-2 bg-gradient-to-r from-blue-700 to-purple-600 text-white rounded-lg font-semibold shadow hover:from-blue-800 hover:to-purple-700 transition"
-                onClick={() => {
-                  // If you want to add logout logic here, you can do so
-                  // Or just render <LogoutButton /> if you want to keep the same logic
-                  // For now, we keep the LogoutButton component
-                }}
-              >
-                <LogoutButton />
-              </button>
               <div className="flex-1 flex justify-end">
                 <button
                   className="px-4 py-2 bg-gradient-to-r from-blue-700 to-purple-600 text-white rounded-lg font-semibold shadow hover:from-blue-800 hover:to-purple-700 transition"
