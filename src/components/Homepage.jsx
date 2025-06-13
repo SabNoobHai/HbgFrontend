@@ -8,6 +8,7 @@ import Analytics from './Analytics';
 import AutoScrollPosts from './AutoScrollPosts';
 import FacebookLoginButton from './FacebookLoginButton';
 import GoogleLoginButton from './GoogleLogin';
+import YouTubePosts from './PostYT';
 
 export default function Homepage() {
   const [posts, setPosts] = useState([]);
@@ -273,16 +274,14 @@ export default function Homepage() {
             id="homepage"
             className="h-[350px] bg-[#1f1f1f]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300"
           >
-            <h2 className="text-2xl font-semibold text-white">Youtube</h2>
+            {/* <h2 className="text-2xl font-semibold text-white">Youtube</h2> */}
             <div className="flex flex-1 items-center justify-center h-full">
               {!googleTokenValid ? (
                 <div className="w-full max-w-xs">
                   <GoogleLoginButton />
                 </div>
               ) : (
-                <a href="#" className="text-blue-400 hover:text-blue-200 underline">
-                  View All
-                </a>
+                <YouTubePosts />
               )}
             </div>
           </div>
