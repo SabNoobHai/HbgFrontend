@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
-import { setPages, setSelectedPage } from '../store/pagesSlice';
+import { setPages, setSelectedPage, setFbToken, setGoogleToken } from '../store/pagesSlice';
 import SchPost from './Schedule';
 import Posts from './Posts';
 import Analytics from './Analytics';
-import LogoutButton from './LogoutButton';
+import AutoScrollPosts from './AutoScrollPosts';
+import FacebookLoginButton from './FacebookLoginButton';
+import GoogleLoginButton from './GoogleLogin';
 
-function Homepage() {
+export default function Homepage() {
   const [posts, setPosts] = useState([]);
   const [sortBy, setSortBy] = useState('date');
   const [order, setOrder] = useState('desc');
@@ -16,7 +18,30 @@ function Homepage() {
   const dispatch = useDispatch();
   const pages = useSelector((state) => state.pages.pages);
   const selectedPage = useSelector((state) => state.pages.selectedPage);
+  const fbTokenValid = useSelector((state) => state.pages.fbTokenValid);
+  const googleTokenValid = useSelector((state) => state.pages.googleTokenValid);
 
+  // Facebook Auth Check
+  const checkFacebookAuth = async () => {
+    try {
+      await axios.get('http://localhost:5000/auth/facebook/pages', { withCredentials: true });
+      dispatch(setFbToken(true));
+    } catch {
+      dispatch(setFbToken(false));
+    }
+  };
+
+  // Google Auth Check
+  const checkGoogleAuth = async () => {
+    try {
+      await axios.get('http://localhost:5000/api/youtube/check-auth', { withCredentials: true });
+      dispatch(setGoogleToken(true));
+    } catch {
+      dispatch(setGoogleToken(false));
+    }
+  };
+
+  // Fetch Facebook Pages
   const fetchPages = async () => {
     try {
       const res = await axios.get('http://localhost:5000/auth/facebook/pages', {
@@ -25,10 +50,11 @@ function Homepage() {
       dispatch(setPages(res.data.pages));
     } catch (err) {
       console.error('Error fetching pages:', err);
-      alert('Failed to fetch pages');
+     
     }
   };
 
+  // Fetch Facebook Posts
   const fetchPosts = async () => {
     if (!selectedPage) return;
     const page = pages.find((p) => p.id === selectedPage);
@@ -48,18 +74,31 @@ function Homepage() {
     } catch (err) {
       console.error('Error fetching posts:', err);
       alert('Failed to fetch posts');
+       window.location.href = '/homepage'
     }
   };
 
   useEffect(() => {
+    checkFacebookAuth();
+    checkGoogleAuth();
     fetchPages();
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
     if (selectedPage) {
       fetchPosts();
     }
+    // eslint-disable-next-line
   }, [selectedPage, sortBy, order]);
+
+  // Logout functionality
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    localStorage.removeItem('persist:root');
+    window.location.href = '/';
+  };
 
   return (
     <>
@@ -93,8 +132,17 @@ function Homepage() {
           100% { transform: translateX(-100%); }
         }
         .animate-marquee {
-          animation: marquee 50s linear infinite;
+          display: inline-flex;
+          animation: marquee 40s linear infinite;
           white-space: nowrap;
+          will-change: transform;
+        }
+        .marquee-wrapper {
+          overflow: hidden;
+          position: relative;
+        }
+        .animate-marquee:hover {
+          animation-play-state: paused;
         }
       `}</style>
 
@@ -104,7 +152,14 @@ function Homepage() {
         <div className="text-[#f5f5f5] text-5xl font-extrabold tracking-wider animate-pulse">
           Socialsuite
         </div>
-        <div className="text-gray-400 font-light italic">Empower your social presence</div>
+        <div>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-semibold shadow transition"
+          >
+            Logout
+          </button>
+        </div>
       </nav>
 
       <div className="flex h-full">
@@ -118,7 +173,6 @@ function Homepage() {
               { title: 'Earning', href: 'earning', links: ['Views Per Video', 'Likes Per Post'] },
               { title: 'Trending', href: 'trending', links: ['Trending Reels', 'Trending Post'] },
               { title: 'Logout', href: 'logout', links: ['Logout'] },
-
             ].map(section => (
               <div key={section.title}>
                 <a
@@ -140,6 +194,8 @@ function Homepage() {
                           setActiveSection('all-posts');
                         } else if (link === 'Analytics') {
                           setActiveSection('Analytics');
+                        } else if (link === 'Logout') {
+                          handleLogout();
                         } else {
                           setActiveSection('home');
                         }
@@ -157,23 +213,22 @@ function Homepage() {
 
         {/* Main Content */}
         <main className="flex-1 p-10 ml-20 flex flex-col gap-10">
-          {activeSection === 'schedule' ? (
-            <SchPost />
-          ) : activeSection === 'all-posts' ? (
-            <Posts />
-          ) : activeSection === 'Analytics' ? (
-            <Analytics />
-          ) : activeSection === 'Logout' ?(
-            <LogoutButton/>
-          ) : (
-            <>
-              <div
-                id="post"
-                className="max-w-[95vw] bg-[#1f1f1f]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6"
-              >
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
-                  <h2 className="text-2xl font-semibold text-white">FACEBOOK POSTS</h2>
-                  <div className="flex flex-wrap gap-4 items-center">
+          {/* Facebook Section */}
+          <div
+            id="post"
+            className="max-w-[95vw] bg-[#1f1f1f]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-6"
+          >
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-4">
+              <h2 className="text-2xl font-semibold text-white">FACEBOOK POSTS</h2>
+              <div className="flex flex-wrap gap-4 items-center w-full lg:w-auto">
+                {!fbTokenValid ? (
+                  <div className="w-full flex justify-center">
+                    <div className="w-full max-w-xs">
+                      <FacebookLoginButton />
+                    </div>
+                  </div>
+                ) : (
+                  <>
                     <select
                       className="p-2 rounded-md bg-[#2b2b2b] text-white"
                       value={selectedPage || ''}
@@ -203,73 +258,40 @@ function Homepage() {
                       <option value="desc">Descending</option>
                       <option value="asc">Ascending</option>
                     </select>
-                  </div>
-                </div>
-                <div className="overflow-hidden w-full">
-                  <div className="animate-marquee flex gap-6">
-                    {posts.map((post) => (
-                      <div
-                        key={post.id}
-                        className="bg-white text-black rounded-xl shadow-lg overflow-hidden min-w-[300px] max-w-[300px] mr-4"
-                      >
-                        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-300">
-                          <div className="w-10 h-10 rounded-full bg-gray-300"></div>
-                          <div>
-                            <div className="font-semibold">{post.from?.name || 'Facebook Page'}</div>
-                            <div className="text-xs text-gray-500">
-                              {new Date(post.created_time).toLocaleString()}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="px-4 py-2 text-sm">
-                          {post.message ? post.message.slice(0, 100) + '...' : 'No content'}
-                        </div>
-                        {post.full_picture && (
-                          <img
-                            src={post.full_picture}
-                            alt="Post"
-                            className="w-full object-cover h-48"
-                          />
-                        )}
-                        <div className="flex justify-between items-center px-4 py-2 text-sm text-gray-500 border-t border-b border-gray-300">
-                          <div>
-                            <span role="img" aria-label="like">👍</span> {post.likes?.summary?.total_count || 0}
-                          </div>
-                          <div>{post.comments?.summary?.total_count || 0} Comments</div>
-                        </div>
-                        <div className="flex justify-around py-2">
-                          <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600">
-                            👍 Like
-                          </button>
-                          <button className="flex items-center gap-2 text-sm font-semibold text-gray-700 hover:text-blue-600">
-                            💬 Comment
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                  </>
+                )}
               </div>
-
-              {/* Instagram Section */}
-              <div
-                id="homepage"
-                className="h-[350px] bg-[#1f1f1f]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300"
-              >
-                <h2 className="text-2xl font-semibold text-white">INSTAGRAM</h2>
-                <div className="flex justify-end">
-                  <a href="#" className="text-blue-400 hover:text-blue-200 underline">
-                    View All
-                  </a>
-                </div>
+            </div>
+            <div className="w-full overflow-hidden">
+              <div className="max-w-screen-xl mx-auto">
+                {fbTokenValid ? <AutoScrollPosts posts={posts} /> : null}
               </div>
-            </>
-          )}
+            </div>
+          </div>
+          {/* Youtube Section */}
+          <div
+            id="homepage"
+            className="h-[350px] bg-[#1f1f1f]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300"
+          >
+            <h2 className="text-2xl font-semibold text-white">Youtube</h2>
+            <div className="flex flex-1 items-center justify-center h-full">
+              {!googleTokenValid ? (
+                <div className="w-full max-w-xs">
+                  <GoogleLoginButton />
+                </div>
+              ) : (
+                <a href="#" className="text-blue-400 hover:text-blue-200 underline">
+                  View All
+                </a>
+              )}
+            </div>
+          </div>
+          {/* Section Routing */}
+          {activeSection === 'schedule' && <SchPost />}
+          {activeSection === 'all-posts' && <Posts />}
+          {activeSection === 'Analytics' && <Analytics />}
         </main>
-        <LogoutButton />
       </div>
     </>
   );
 }
-
-export default Homepage;

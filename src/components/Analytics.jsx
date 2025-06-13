@@ -64,7 +64,7 @@ const Analytics = () => {
         setPages(res.data.pages || []);
       } catch (err) {
         setPages([]);
-        alert('Failed to fetch pages');
+   
       }
     };
     fetchPages();
@@ -76,7 +76,6 @@ const Analytics = () => {
       if (!selectedPage) return;
       setLoading(true);
       try {
-        console.log('Fetching analytics for page:', selectedPage);
         const res = await axios.get('http://localhost:5000/insights/page', {
           
           params: {   metrics: 'page_views',pageId: selectedPage, period: 'day' },

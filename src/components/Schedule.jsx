@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { setPages, setUser } from '../store/pagesSlice';
-import LogoutButton from './LogoutButton';
-import PageSelector from './PageSelector';
+
 
 const SchPost = () => {
   const dispatch = useDispatch();
@@ -179,7 +178,7 @@ const SchPost = () => {
                 <button
                   className="px-4 py-2 bg-gradient-to-r from-blue-700 to-purple-600 text-white rounded-lg font-semibold shadow hover:from-blue-800 hover:to-purple-700 transition"
                 >
-                  <PageSelector />
+                
                 </button>
               </div>
             </div>

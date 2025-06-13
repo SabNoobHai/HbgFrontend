@@ -6,6 +6,9 @@ const pagesSlice = createSlice({
     selectedPage: null,
     user: null,
     postsByPage: {},
+    fbTokenValid: false,
+      googleTokenValid: false,
+    checking: true,
   },
   reducers: {
     setPages: (state, action) => {
@@ -22,19 +25,25 @@ const pagesSlice = createSlice({
     },
     setPostsByPage: (state, action) => {
       const { pageName, posts } = action.payload;
-      console.log(`Setting posts for page: ${pageName}`, posts);
       state.postsByPage[pageName] = posts;
     },
     clearPostsByPage: (state) => {
       state.postsByPage = {};
     },
     setUser: (state, action) => {   
-          // <-- Add this
+      
       state.user = action.payload;
      
     },
-    clearUser: (state) => {              // <-- Add this (optional)
+    clearUser: (state) => {             
       state.user = {};
+    },
+     setFbToken: (state, action) => {
+      state.fbTokenValid = action.payload;
+    },
+    setGoogleToken: (state, action) => { state.googleTokenValid = action.payload; },
+    setChecking: (state, action) => {
+      state.checking = action.payload;
     },
   }
 });
@@ -46,8 +55,11 @@ export const {
   clearSelectedPage,
   setPostsByPage,
   clearPostsByPage,
-  setUser,         // <-- Export this
-  clearUser,       // <-- Export this
+  setUser,         
+  clearUser,      
+  setGoogleToken,
+  setFbToken,
+  setChecking,
 } = pagesSlice.actions;
 
 export default pagesSlice.reducer;
