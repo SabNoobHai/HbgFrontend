@@ -8,12 +8,13 @@ function Posts() {
   const [sortBy, setSortBy] = useState('date');
   const [order, setOrder] = useState('desc');
   const [selectedPost, setSelectedPost] = useState(null);
+  const [editMode, setEditMode] = useState(false);
+  const [editedMessage, setEditedMessage] = useState('');
 
   const dispatch = useDispatch();
   const pages = useSelector((state) => state.pages.pages);
   const selectedPage = useSelector((state) => state.pages.selectedPage);
 
-  // Fetch pages for dropdown
   const fetchPages = async () => {
     try {
       const res = await axios.get('http://localhost:5000/auth/facebook/pages', {
@@ -26,7 +27,6 @@ function Posts() {
     }
   };
 
-  // Fetch posts for selected page
   const fetchPosts = async () => {
     if (!selectedPage) return;
     const page = pages.find((p) => p.id === selectedPage);
@@ -47,6 +47,50 @@ function Posts() {
       alert('Failed to fetch posts');
     }
   };
+
+ const handleEditPost = async () => {
+  try {
+    const res = await axios.post('http://localhost:5000/editpost', {
+      postId: selectedPost.postId || selectedPost.id,
+      pageId: selectedPage,
+      message: editedMessage,
+    });
+    if (res.data.success) {
+      alert('Post updated successfully!');
+      setEditMode(false);
+      setSelectedPost(null);
+      fetchPosts();
+    } else {
+      alert('Failed to update post');
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Error updating post');
+  }
+};
+
+const handleDeletePost = async () => {
+  if (!window.confirm('Are you sure you want to delete this post?')) return;
+  try {
+    const res = await axios.delete('http://localhost:5000/deletepost', {
+      data: {
+        postId: selectedPost.postId || selectedPost.id,
+        pageId: selectedPage,
+      },
+    });
+    if (res.data.success) {
+      alert('Post deleted successfully!');
+      setSelectedPost(null);
+      fetchPosts();
+    } else {
+      alert('Failed to delete post');
+    }
+  } catch (error) {
+    console.error(error);
+    alert('Error deleting post');
+  }
+};
+
 
   useEffect(() => {
     fetchPages();
@@ -132,7 +176,7 @@ function Posts() {
                 >
                   <option value="">-- Select Page --</option>
                   {pages.map((page) => (
-                    <option key={page.id} value={page.id} >
+                    <option key={page.id} value={page.id}>
                       {page.name}
                     </option>
                   ))}
@@ -205,7 +249,6 @@ function Posts() {
         </main>
       </div>
 
-      {/* Modal for post details */}
       {selectedPost && (
         <div className="modal-bg" onClick={() => setSelectedPost(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
@@ -217,10 +260,26 @@ function Posts() {
             {selectedPost.full_picture && (
               <img src={selectedPost.full_picture} alt="Post" className="modal-img" />
             )}
+
             <div className="modal-section">
               <h4>Message</h4>
-              <div>{selectedPost.message || 'No content'}</div>
+              {editMode ? (
+                <>
+                  <textarea
+                    value={editedMessage}
+                    onChange={(e) => setEditedMessage(e.target.value)}
+                    className="w-full p-2 rounded text-black"
+                  />
+                  <div className="flex gap-2 mt-2">
+                    <button onClick={handleEditPost} className="bg-green-600 px-4 py-1 rounded">Save</button>
+                    <button onClick={() => setEditMode(false)} className="bg-gray-500 px-4 py-1 rounded">Cancel</button>
+                  </div>
+                </>
+              ) : (
+                <div>{selectedPost.message || 'No content'}</div>
+              )}
             </div>
+
             <div className="modal-section">
               <h4>Likes</h4>
               <div className="modal-list">
@@ -233,6 +292,7 @@ function Posts() {
                 )}
               </div>
             </div>
+
             <div className="modal-section">
               <h4>Comments</h4>
               <div className="modal-list">
@@ -247,11 +307,25 @@ function Posts() {
                 )}
               </div>
             </div>
+
+            {!editMode && (
+              <div className="flex justify-between mt-4">
+                <button onClick={() => {
+                  setEditMode(true);
+                  setEditedMessage(selectedPost.message || '');
+                }} className="bg-blue-600 px-4 py-1 rounded">
+                  Edit Post
+                </button>
+                <button onClick={handleDeletePost} className="bg-red-600 px-4 py-1 rounded">
+                  Delete Post
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
     </>
   );
-}//
+}
 
 export default Posts;
