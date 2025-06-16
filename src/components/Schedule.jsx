@@ -30,13 +30,13 @@ const SchPost = () => {
       alert('Please login first.');
       return;
     }
-    window.location.href = `http://localhost:5000/auth/facebook?user_id=${user._id}`;
+    window.location.href = `https://socialsuit-backend-h9md.onrender.com/auth/facebook?user_id=${user._id}`;
   };
 
   // Fetch pages after Facebook login
   const fetchPages = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/auth/facebook/pages', {
+      const res = await axios.get('https://socialsuit-backend-h9md.onrender.com/auth/facebook/pages', {
         withCredentials: true,
       });
       dispatch(setPages(res.data.pages));
@@ -59,7 +59,7 @@ const SchPost = () => {
     formData.append('file', mediaFile);
 
     try {
-      const res = await axios.post('http://localhost:5000/schedulePost/timing', formData, {
+      const res = await axios.post('https://socialsuit-backend-h9md.onrender.com/schedulePost/timing', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true,
       });
@@ -80,7 +80,7 @@ const SchPost = () => {
     formData.append('file', mediaFile);
 
     try {
-      const res = await axios.post('http://localhost:5000/schedulePost/instantly', formData, {
+      const res = await axios.post('https://socialsuit-backend-h9md.onrender.com/schedulePost/instantly', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         withCredentials: true,
       });

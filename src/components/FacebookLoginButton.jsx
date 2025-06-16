@@ -7,7 +7,7 @@ const FacebookLoginButton = () => {
       alert("Please login first.");
       return;
     }
-    window.location.href = `http://localhost:5000/auth/facebook?user_id=${user._id}`;
+    window.location.href = `https://socialsuit-backend-h9md.onrender.com/auth/facebook?user_id=${user._id}`;
   };
 
   return (

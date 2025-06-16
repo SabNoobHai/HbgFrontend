@@ -33,7 +33,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/userauth/login", {
+      const res = await axios.post("https://socialsuit-backend-h9md.onrender.com/userauth/login", {
         username,
         password,
       });
@@ -58,7 +58,7 @@ export default function Login() {
     }
     setSignupLoading(true);
     try {
-      const res = await axios.post("http://localhost:5000/userauth/register", {
+      const res = await axios.post("https://socialsuit-backend-h9md.onrender.com/userauth/register", {
         username: signupUsername,
         password: signupPassword,
       });
@@ -85,7 +85,7 @@ export default function Login() {
       return;
     }
     try {
-      await axios.post("http://localhost:5000/userauth/update-app-credentials", {
+      await axios.post("https://socialsuit-backend-h9md.onrender.com/userauth/update-app-credentials", {
         user_id: user._id,
         facebookAppId,
         facebookAppSecret,

@@ -16,7 +16,7 @@ function Posts() {
   // Fetch pages for dropdown
   const fetchPages = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/auth/facebook/pages', {
+      const res = await axios.get('https://socialsuit-backend-h9md.onrender.com/auth/facebook/pages', {
         withCredentials: true,
       });
       dispatch(setPages(res.data.pages));
@@ -32,7 +32,7 @@ function Posts() {
     const page = pages.find((p) => p.id === selectedPage);
     if (!page) return;
     try {
-      const res = await axios.get('http://localhost:5000/posts/getallpostsfilter', {
+      const res = await axios.get('https://socialsuit-backend-h9md.onrender.com/posts/getallpostsfilter', {
         params: {
           pageId: selectedPage,
           accessToken: page.access_token,

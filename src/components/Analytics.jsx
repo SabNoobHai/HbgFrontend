@@ -58,7 +58,7 @@ const Analytics = () => {
   useEffect(() => {
     const fetchPages = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/auth/facebook/pages', {
+        const res = await axios.get('https://socialsuit-backend-h9md.onrender.com/auth/facebook/pages', {
           withCredentials: true,
         });
         setPages(res.data.pages || []);
@@ -72,22 +72,27 @@ const Analytics = () => {
 
   // Fetch analytics when a page is selected
   useEffect(() => {
-    const fetchAnalytics = async () => {
-      if (!selectedPage) return;
-      setLoading(true);
-      try {
-        const res = await axios.get('http://localhost:5000/insights/page', {
-          
-          params: {   metrics: 'page_views',pageId: selectedPage, period: 'day' },
-          withCredentials: true,
-        });
-        setAnalytics(res.data.data || []);
-      } catch (err) {
-        setAnalytics([]);
-        alert('Failed to fetch analytics');
-      }
-      setLoading(false);
-    };
+  const fetchAnalytics = async (period = 'day') => {
+  if (!selectedPage) return;
+  setLoading(true);
+  try {
+    const res = await axios.get('https://socialsuit-backend-h9md.onrender.com/insights/page', {
+      params: {
+        metrics: 'page_impressions_unique,page_post_engagements,page_follows,post_clicks',
+        pageId: selectedPage,
+        period: period, // Pass 'day', 'week', or 'days_28'
+      },
+      withCredentials: true,
+    });
+    console.log(res.data.data);
+    setAnalytics(res.data.data || []);
+  } catch (err) {
+    setAnalytics([]);
+    alert('Failed to fetch analytics');
+  }
+  setLoading(false);
+};
+
     fetchAnalytics();
   }, [selectedPage]);
 

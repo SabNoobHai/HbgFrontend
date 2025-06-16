@@ -9,7 +9,7 @@ function YouTubeDashboard() {
 
   const fetchVideos = async () => {
     try {
-      const response= await axios.get('http://localhost:5000/api/youtube/uploads', { withCredentials: true });
+      const response= await axios.get('https://socialsuit-backend-h9md.onrender.com/api/youtube/uploads', { withCredentials: true });
       console.log('Response:', response);
         if (response.status != 200) {
          

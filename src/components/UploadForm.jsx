@@ -21,7 +21,7 @@ const UploadForm = () => {
     formData.append('scheduledAt', scheduledAt);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/youtube/schedule', formData, {
+      const res = await axios.post('https://socialsuit-backend-h9md.onrender.com/api/youtube/schedule', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

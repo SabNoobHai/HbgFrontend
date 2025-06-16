@@ -4,7 +4,7 @@ import axios from 'axios';
 const GoogleLoginButton = () => {
   const handleLogin = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/youtube/auth-url', { withCredentials: true });
+      const res = await axios.get('https://socialsuit-backend-h9md.onrender.com/api/youtube/auth-url', { withCredentials: true });
       window.location.href = res.data.url;
     } catch (err) {
       alert('Failed to get Google login URL');
