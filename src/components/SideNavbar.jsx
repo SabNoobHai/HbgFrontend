@@ -82,15 +82,14 @@ function SideNavbar({ handleLogout }) {
               >
                 • Facebook
               </button>
-              <button
+              <NavLink to = "/youtube" onClick={() => setPostsDropdownOpen(false)}>
+                <button
                 className="text-left text-sm w-full px-3 py-1 hover:bg-[#2c2c40] rounded-md"
-                onClick={() => {
-                  setPostsDropdownOpen(false);
-                  navigate('/youtube');
-                }}
               >
                 • YouTube
               </button>
+              </NavLink>
+              
             </div>
           )}
         </div>

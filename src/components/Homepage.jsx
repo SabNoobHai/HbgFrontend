@@ -11,6 +11,7 @@ import AutoScrollPosts from './AutoScrollPosts';
 import FacebookLoginButton from './FacebookLoginButton';
 import GoogleLoginButton from './GoogleLogin';
 import Posts from './Posts';
+import YouTubePosts from './PostYT';
 
 // Icons
 import {
@@ -25,6 +26,8 @@ import {
 } from 'lucide-react';
 import Analytics from './Analytics';
 import SchPost from './Schedule';
+import YouTubeDashboard from './YouTubeDashboard';
+import UploadForm from './UploadForm';
 
 export default function Homepage() {
   const [posts, setPosts] = useState([]);
@@ -109,7 +112,10 @@ export default function Homepage() {
           <Youtube /> Youtube
         </button>
         <button onClick={() => setActiveSection('schedule')} className="flex items-center gap-3 text-white hover:text-purple-400">
-          <Clock /> Schedule Post
+          <Clock /> Schedule Facebook Post
+        </button>
+        <button onClick={() => setActiveSection('yts')} className="flex items-center gap-3 text-white hover:text-purple-400">
+          <Clock /> Schedule Youtube Video
         </button>
         <button onClick={() => setActiveSection('analytics')} className="flex items-center gap-3 text-white hover:text-purple-400">
           <BarChart2 /> Analytics
@@ -175,14 +181,22 @@ export default function Homepage() {
               ) : <FacebookLoginButton />}
             </section>
 
-            <section className="bg-gray-900 text-white shadow rounded-xl p-6">
-              <h2 className="text-xl font-semibold mb-4">YouTube</h2>
-              {googleTokenValid ? (
-                <a href="#" className="text-purple-400 hover:underline">View All</a>
+           <div
+            id="homepage"
+            className="h-[350px] bg-[#1f1f1f]/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-xl p-8 flex flex-col justify-between hover:scale-[1.02] transition-transform duration-300"
+          >
+            {/* <h2 className="text-2xl font-semibold text-white">Youtube</h2> */}
+            <div className="flex flex-1 items-center justify-center h-full">
+              {!googleTokenValid ? (
+                <div className="w-full max-w-xs">
+                  <GoogleLoginButton />
+                </div>
               ) : (
-                <GoogleLoginButton />
+                <YouTubePosts />
               )}
-            </section>
+            </div>
+          </div>
+
           </>
         );
       case 'fbposts':
@@ -220,6 +234,30 @@ export default function Homepage() {
             <Analytics />
           </>
         ) : <FacebookLoginButton />}
+      </section>
+    );
+    case 'youtube':
+    return (
+      <section className="bg-gray-900 text-white shadow rounded-xl p-6">
+        <h2 className="text-xl font-semibold mb-4">Youtube</h2>
+        {googleTokenValid ? (
+          <>
+            {renderPageFilters()}
+            <YouTubeDashboard />
+          </>
+        ) : <GoogleLoginButton />}
+      </section>
+    );
+     case 'yts':
+    return (
+      <section className="bg-gray-900 text-white shadow rounded-xl p-6">
+        {/* <h2 className="text-xl font-semibold mb-4">Youtube</h2> */}
+        {googleTokenValid ? (
+          <>
+            {renderPageFilters()}
+            <UploadForm />
+          </>
+        ) : <GoogleLoginButton />}
       </section>
     );
       default:
